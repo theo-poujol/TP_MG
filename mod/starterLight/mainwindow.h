@@ -46,6 +46,8 @@ public:
     std::vector<int> exploreNeighbors(MyMesh* _mesh, int face, std::vector<int> const& visited, int const& color);
     void showParts(MyMesh* _mesh);
     bool isNoice(std::vector<int> const& parts, MyMesh* _mesh);
+    std::vector<int> vertexEquivalence(MyMesh* _mesh);
+    bool is_equal(MyMesh* _mesh, int v1, int v2);
 
 
 private slots:
