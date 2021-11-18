@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "iostream"
 
 /* **** début de la partie boutons et IHM **** */
 
@@ -94,6 +94,115 @@ void MainWindow::on_pushButton_generer_clicked()
     // on affiche le maillage
     displayMesh(&mesh);
 
+}
+
+bool MainWindow::inArray(std::vector<int> const& visited, int const& a){
+    bool find = false;
+    for(size_t i(0); i < visited.size(); i++){
+        find = find || (visited[i] == a);
+    }
+
+    return find;
+}
+
+int MainWindow::findNewFace(std::vector<int> const& visited, int const& nbFaces){
+    for(int i(0); i < nbFaces; i++){
+        if(!inArray(visited, i)){
+            return i;
+        }
+    }
+}
+
+std::vector<int> MainWindow::exploreNeighbors(MyMesh* _mesh, int face, std::vector<int> const& visited, int const& color){
+    FaceHandle fh = _mesh->face_handle(face);
+
+    std::vector<int> explored(0);
+
+    for (MyMesh::FaceFaceIter ff_it=_mesh->ff_iter(fh); ff_it.is_valid(); ++ff_it)
+    {
+      if(!inArray(visited, (*ff_it).idx())){
+          explored.push_back((*ff_it).idx());
+      }
+    }
+
+    return explored;
+}
+
+
+bool MainWindow::isNoice(std::vector<int> const& part, MyMesh* _mesh){
+    bool isNoice = true;
+    for(int i(0); i < part.size(); i++){
+        FaceHandle fh = mesh.face_handle(part[i]);
+        bool isBoundary = _mesh->is_boundary(fh);
+        isNoice = isNoice && isBoundary;
+    }
+
+    return isNoice;
+}
+
+
+void MainWindow::showParts(MyMesh* _mesh)
+{
+    /* **** à compléter ! **** */
+
+    int const nbFaces = _mesh->n_faces();
+
+    int nbParts = 0;
+
+    std::vector<int> visited(0);
+    std::vector<int> toVisit(0);
+
+
+    do {
+        std::vector<int> in_part;
+
+        int newFace = findNewFace(visited, nbFaces);
+
+        toVisit.push_back(newFace);
+
+        while (toVisit.size() != 0) {
+            int face = toVisit[0];
+            toVisit.erase(toVisit.begin());
+
+            std::vector<int> explored = exploreNeighbors(_mesh, face, visited, nbParts);
+
+            visited.push_back(face);
+            in_part.push_back(face);
+
+            for(size_t i(0); i < explored.size(); i++){
+                if(!inArray(toVisit, explored[i])){
+                    toVisit.push_back(explored[i]);
+                }
+            }
+        }
+
+        std::cout << isNoice(in_part, _mesh) << std::endl;
+
+        if(isNoice(in_part, _mesh)){
+            for(size_t i(0); i < in_part.size(); i++){
+                FaceHandle fh = _mesh->face_handle(in_part[i]);
+                _mesh->set_color(fh, MyMesh::Color(255, 0, 0));
+            }
+        }
+
+        std::cout << "nbParts" << nbParts << std::endl;
+        nbParts++;
+
+    } while (visited.size() < nbFaces);
+
+}
+
+
+void MainWindow::on_pushButton_voirBruit_clicked()
+{
+    // on réinitialise l'affichage
+    resetAllColorsAndThickness(&mesh);
+
+    /* **** à compléter ! (avec la fonction showParts) **** */
+    showParts(&mesh);
+
+    // on affiche le nouveau maillage
+    displayMesh(&mesh);
 }
 
 /* **** fin de la partie boutons et IHM **** */

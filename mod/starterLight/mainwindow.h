@@ -41,10 +41,19 @@ public:
     void displayMesh(MyMesh *_mesh, bool isTemperatureMap = false, float mapRange = -1);
     void resetAllColorsAndThickness(MyMesh* _mesh);
 
+    bool inArray(std::vector<int> const& visited, int const& a);
+    int findNewFace(std::vector<int> const& visited, int const& nbFaces);
+    std::vector<int> exploreNeighbors(MyMesh* _mesh, int face, std::vector<int> const& visited, int const& color);
+    void showParts(MyMesh* _mesh);
+    bool isNoice(std::vector<int> const& parts, MyMesh* _mesh);
+
+
 private slots:
     void on_pushButton_chargement_clicked();
 
     void on_pushButton_generer_clicked();
+
+    void on_pushButton_voirBruit_clicked();
 
 private:
 
