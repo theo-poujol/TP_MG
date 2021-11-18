@@ -23,79 +23,6 @@ void MainWindow::on_pushButton_chargement_clicked()
     displayMesh(&mesh);
 }
 
-// exemple pour construire un mesh face par face
-void MainWindow::on_pushButton_generer_clicked()
-{
-    MyMesh mesh;
-
-    // on construit une liste de sommets
-    MyMesh::VertexHandle sommets[8];
-    sommets[0] = mesh.add_vertex(MyMesh::Point(-1, -1,  1));
-    sommets[1] = mesh.add_vertex(MyMesh::Point( 1, -1,  1));
-    sommets[2] = mesh.add_vertex(MyMesh::Point( 1,  1,  1));
-    sommets[3] = mesh.add_vertex(MyMesh::Point(-1,  1,  1));
-    sommets[4] = mesh.add_vertex(MyMesh::Point(-1, -1, -1));
-    sommets[5] = mesh.add_vertex(MyMesh::Point( 1, -1, -1));
-    sommets[6] = mesh.add_vertex(MyMesh::Point( 1,  1, -1));
-    sommets[7] = mesh.add_vertex(MyMesh::Point(-1,  1, -1));
-
-
-    // on construit des faces à partir des sommets
-
-    std::vector<MyMesh::VertexHandle> uneNouvelleFace;
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[0]);
-    uneNouvelleFace.push_back(sommets[1]);
-    uneNouvelleFace.push_back(sommets[2]);
-    uneNouvelleFace.push_back(sommets[3]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[7]);
-    uneNouvelleFace.push_back(sommets[6]);
-    uneNouvelleFace.push_back(sommets[5]);
-    uneNouvelleFace.push_back(sommets[4]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[1]);
-    uneNouvelleFace.push_back(sommets[0]);
-    uneNouvelleFace.push_back(sommets[4]);
-    uneNouvelleFace.push_back(sommets[5]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[2]);
-    uneNouvelleFace.push_back(sommets[1]);
-    uneNouvelleFace.push_back(sommets[5]);
-    uneNouvelleFace.push_back(sommets[6]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[3]);
-    uneNouvelleFace.push_back(sommets[2]);
-    uneNouvelleFace.push_back(sommets[6]);
-    uneNouvelleFace.push_back(sommets[7]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[0]);
-    uneNouvelleFace.push_back(sommets[3]);
-    uneNouvelleFace.push_back(sommets[7]);
-    uneNouvelleFace.push_back(sommets[4]);
-    mesh.add_face(uneNouvelleFace);
-
-    mesh.update_normals();
-
-    // initialisation des couleurs et épaisseurs (sommets et arêtes) du mesh
-    resetAllColorsAndThickness(&mesh);
-
-    // on affiche le maillage
-    displayMesh(&mesh);
-
-}
-
 bool MainWindow::inArray(std::vector<int> const& visited, int const& a){
     bool find = false;
     for(size_t i(0); i < visited.size(); i++){
@@ -223,7 +150,7 @@ std::vector<int> MainWindow::vertexEquivalence(MyMesh* _mesh){
 }
 
 
-void MainWindow::showParts(MyMesh* _mesh)
+std::vector<std::vector<std::vector<int>>> MainWindow::detecteParts(MyMesh* _mesh)
 {
     /* **** à compléter ! **** */
 
@@ -322,6 +249,10 @@ void MainWindow::showParts(MyMesh* _mesh)
 
     std::cout << noise_parts.size() << std::endl;
 
+    std::vector<std::vector<int>> noise_connected;
+
+    std::vector<std::vector<int>> noise;
+
     for(size_t k(0); k < noise_parts.size(); k++){
 
         bool part_is_connected = false;
@@ -353,25 +284,83 @@ void MainWindow::showParts(MyMesh* _mesh)
 
         }
 
-        for(size_t i(0); i < noise_parts[k].size(); i++){
-            FaceHandle fh = _mesh->face_handle(noise_parts[k][i]);
-            if(part_is_connected){
-                _mesh->set_color(fh, MyMesh::Color(255, 127, 0));
-            } else {
-                _mesh->set_color(fh, MyMesh::Color(127, 0, 255));
-            }
+        if(part_is_connected){
+            noise_connected.push_back(noise_parts[k]);
+        } else {
+            noise.push_back(noise_parts[k]);
+        }
+
+    }
+
+    std::vector<std::vector<std::vector<int>>> noises;
+    noises.push_back(noise_connected);
+    noises.push_back(noise);
+
+    return noises;
+}
+
+void MainWindow::showParts(MyMesh* _mesh, std::vector<std::vector<std::vector<int>>> noises){
+
+    for(size_t i(0); i < noises[0].size(); i++){
+        for(size_t j(0); j < noises[0][i].size(); j++){
+            FaceHandle fh = _mesh->face_handle(noises[0][i][j]);
+            _mesh->set_color(fh, MyMesh::Color(255, 127, 0));
+        }
+    }
+
+    for(size_t i(0); i < noises[1].size(); i++){
+        for(size_t j(0); j < noises[1][i].size(); j++){
+            FaceHandle fh = _mesh->face_handle(noises[1][i][j]);
+            _mesh->set_color(fh, MyMesh::Color(127, 0, 255));
         }
     }
 }
 
+void MainWindow::deleteBruit(MyMesh *_mesh, std::vector<std::vector<int>> noise){
+    for(size_t i(0); i < noise.size(); i++ ){
+        for(size_t j(0); j < noise[i].size(); j++){
+            FaceHandle f = _mesh->face_handle(noise[i][j]);
+            _mesh->delete_face(f);
+        }
+
+    }
+
+    _mesh->garbage_collection();
+}
 
 void MainWindow::on_pushButton_voirBruit_clicked()
 {
     // on réinitialise l'affichage
     resetAllColorsAndThickness(&mesh);
 
-    /* **** à compléter ! (avec la fonction showParts) **** */
-    showParts(&mesh);
+    std::vector<std::vector<std::vector<int>>> noises = detecteParts(&mesh);
+    showParts(&mesh, noises);
+
+    // on affiche le nouveau maillage
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_suppBruit_clicked()
+{
+    // on réinitialise l'affichage
+    resetAllColorsAndThickness(&mesh);
+
+
+    std::vector<std::vector<std::vector<int>>> noises = detecteParts(&mesh);
+    deleteBruit(&mesh, noises[1]);
+
+    // on affiche le nouveau maillage
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_suppBruitMaillage_clicked()
+{
+    // on réinitialise l'affichage
+    resetAllColorsAndThickness(&mesh);
+
+
+    std::vector<std::vector<std::vector<int>>> noises = detecteParts(&mesh);
+    deleteBruit(&mesh, noises[0]);
 
     // on affiche le nouveau maillage
     displayMesh(&mesh);

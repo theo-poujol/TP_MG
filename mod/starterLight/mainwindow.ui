@@ -59,16 +59,23 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_generer">
+        <widget class="QPushButton" name="pushButton_voirBruit">
          <property name="text">
-          <string>Générer mesh</string>
+          <string>Voir le bruit</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_voirBruit">
+        <widget class="QPushButton" name="pushButton_suppBruit">
          <property name="text">
-          <string>Voir le bruit</string>
+          <string>Supprimer le bruit</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_suppBruitMaillage">
+         <property name="text">
+          <string>Supprimer le bruit du maillage</string>
          </property>
         </widget>
        </item>
