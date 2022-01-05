@@ -32,13 +32,22 @@ public:
     QWidget *widget_2;
     QVBoxLayout *verticalLayout;
     QPushButton *pushButton_chargement;
-    QPushButton *pushButton_identify_holes;
-    QPushButton *pushButton_fix_holes;
+    QSpacerItem *verticalSpacer;
+    QPushButton *pushButton_voirBruit;
+    QPushButton *pushButton_suppBruit;
+    QPushButton *pushButton_suppBruitMaillage;
+    QSpacerItem *verticalSpacer1;
     QPushButton *pushButton_identify_overlaping;
     QPushButton *pushButton_fix_overlaping;
+    QSpacerItem *verticalSpacer2;
     QPushButton *pushButton_detectFis;
     QPushButton *pushButton_repFis;
-    QSpacerItem *verticalSpacer;
+    QSpacerItem *verticalSpacer3;
+    QPushButton *pushButton_identify_holes;
+    QPushButton *pushButton_fix_holes;
+    QSpacerItem *verticalSpacer4;
+    QPushButton *pushButton_fixall;
+    QSpacerItem *verticalSpacer5;
     MeshViewerWidget *displayWidget;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
@@ -48,7 +57,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(632, 408);
+        MainWindow->resize(1200, 800);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         horizontalLayout = new QHBoxLayout(centralWidget);
@@ -74,15 +83,28 @@ public:
 
         verticalLayout->addWidget(pushButton_chargement);
 
-        pushButton_identify_holes = new QPushButton(widget_2);
-        pushButton_identify_holes->setObjectName(QString::fromUtf8("pushButton_identify_holes"));
+        verticalSpacer = new QSpacerItem(20, 80, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        verticalLayout->addWidget(pushButton_identify_holes);
+        verticalLayout->addItem(verticalSpacer);
 
-        pushButton_fix_holes = new QPushButton(widget_2);
-        pushButton_fix_holes->setObjectName(QString::fromUtf8("pushButton_fix_holes"));
+        pushButton_voirBruit = new QPushButton(widget_2);
+        pushButton_voirBruit->setObjectName(QString::fromUtf8("pushButton_voirBruit"));
 
-        verticalLayout->addWidget(pushButton_fix_holes);
+        verticalLayout->addWidget(pushButton_voirBruit);
+
+        pushButton_suppBruit = new QPushButton(widget_2);
+        pushButton_suppBruit->setObjectName(QString::fromUtf8("pushButton_suppBruit"));
+
+        verticalLayout->addWidget(pushButton_suppBruit);
+
+        pushButton_suppBruitMaillage = new QPushButton(widget_2);
+        pushButton_suppBruitMaillage->setObjectName(QString::fromUtf8("pushButton_suppBruitMaillage"));
+
+        verticalLayout->addWidget(pushButton_suppBruitMaillage);
+
+        verticalSpacer1 = new QSpacerItem(20, 80, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        verticalLayout->addItem(verticalSpacer1);
 
         pushButton_identify_overlaping = new QPushButton(widget_2);
         pushButton_identify_overlaping->setObjectName(QString::fromUtf8("pushButton_identify_overlaping"));
@@ -94,6 +116,10 @@ public:
 
         verticalLayout->addWidget(pushButton_fix_overlaping);
 
+        verticalSpacer2 = new QSpacerItem(20, 80, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        verticalLayout->addItem(verticalSpacer2);
+
         pushButton_detectFis = new QPushButton(widget_2);
         pushButton_detectFis->setObjectName(QString::fromUtf8("pushButton_detectFis"));
 
@@ -104,9 +130,32 @@ public:
 
         verticalLayout->addWidget(pushButton_repFis);
 
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+        verticalSpacer3 = new QSpacerItem(20, 80, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        verticalLayout->addItem(verticalSpacer);
+        verticalLayout->addItem(verticalSpacer3);
+
+        pushButton_identify_holes = new QPushButton(widget_2);
+        pushButton_identify_holes->setObjectName(QString::fromUtf8("pushButton_identify_holes"));
+
+        verticalLayout->addWidget(pushButton_identify_holes);
+
+        pushButton_fix_holes = new QPushButton(widget_2);
+        pushButton_fix_holes->setObjectName(QString::fromUtf8("pushButton_fix_holes"));
+
+        verticalLayout->addWidget(pushButton_fix_holes);
+
+        verticalSpacer4 = new QSpacerItem(20, 80, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        verticalLayout->addItem(verticalSpacer4);
+
+        pushButton_fixall = new QPushButton(widget_2);
+        pushButton_fixall->setObjectName(QString::fromUtf8("pushButton_fixall"));
+
+        verticalLayout->addWidget(pushButton_fixall);
+
+        verticalSpacer5 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        verticalLayout->addItem(verticalSpacer5);
 
 
         horizontalLayout->addWidget(widget_2);
@@ -137,12 +186,16 @@ public:
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
         pushButton_chargement->setText(QCoreApplication::translate("MainWindow", "Charger OBJ", nullptr));
-        pushButton_identify_holes->setText(QCoreApplication::translate("MainWindow", "Identifier les trous", nullptr));
-        pushButton_fix_holes->setText(QCoreApplication::translate("MainWindow", "R\303\251parer les trous", nullptr));
+        pushButton_voirBruit->setText(QCoreApplication::translate("MainWindow", "Voir le bruit", nullptr));
+        pushButton_suppBruit->setText(QCoreApplication::translate("MainWindow", "Supprimer le bruit", nullptr));
+        pushButton_suppBruitMaillage->setText(QCoreApplication::translate("MainWindow", "Supprimer le bruit du maillage", nullptr));
         pushButton_identify_overlaping->setText(QCoreApplication::translate("MainWindow", "Identifier Overlaping", nullptr));
         pushButton_fix_overlaping->setText(QCoreApplication::translate("MainWindow", "R\303\251parer Overlaping", nullptr));
         pushButton_detectFis->setText(QCoreApplication::translate("MainWindow", "D\303\251tecter fissure", nullptr));
         pushButton_repFis->setText(QCoreApplication::translate("MainWindow", "R\303\251parer fissure", nullptr));
+        pushButton_identify_holes->setText(QCoreApplication::translate("MainWindow", "Identifier les trous", nullptr));
+        pushButton_fix_holes->setText(QCoreApplication::translate("MainWindow", "R\303\251parer les trous", nullptr));
+        pushButton_fixall->setText(QCoreApplication::translate("MainWindow", "R\303\251paration compl\303\250te", nullptr));
     } // retranslateUi
 
 };

@@ -54,6 +54,8 @@ public:
     bool is_equal(MyMesh* _mesh, int v1, int v2);
     void deleteBruit(MyMesh* _mesh, std::vector<std::vector<int>> noise);
 
+    void fixall();
+
 private slots:
     void on_pushButton_suppBruit_clicked();
     void on_pushButton_suppBruitMaillage_clicked();
@@ -65,6 +67,7 @@ private slots:
     void on_pushButton_detectFis_clicked();
     void on_pushButton_repFis_clicked();
     void on_pushButton_voirBruit_clicked();
+    void on_pushButton_fixall_clicked();
 
 private:
 

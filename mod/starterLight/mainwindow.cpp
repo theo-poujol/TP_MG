@@ -326,23 +326,23 @@ std::vector<std::vector<std::vector<int>>> MainWindow::detecteParts(MyMesh* _mes
 
             }
 
-            std::cout << fusion << std::endl;
+
 
             if(!fusion){
                 noise_parts.push_back(in_part);
             }
 
-            std::cout << noise_parts.size() << std::endl;
+
 
 
         }
 
-        std::cout << "nbParts" << nbParts << std::endl;
+
         nbParts++;
 
     } while (visited.size() < nbFaces);
 
-    std::cout << noise_parts.size() << std::endl;
+
 
     std::vector<std::vector<int>> noise_connected;
 
@@ -435,6 +435,25 @@ void MainWindow::on_pushButton_voirBruit_clicked()
     displayMesh(&mesh);
 }
 
+void MainWindow::on_pushButton_fixall_clicked()
+{
+    // Bruit
+    on_pushButton_suppBruit_clicked();
+    // Bruit maillage
+    on_pushButton_suppBruitMaillage_clicked();
+    // Overlaping
+    on_pushButton_fix_overlaping_clicked();
+    // Fissure
+    on_pushButton_detectFis_clicked();
+    on_pushButton_repFis_clicked();
+    // Trous
+    on_pushButton_fix_holes_clicked();
+
+    resetAllColorsAndThickness(&mesh);
+
+    displayMesh(&mesh);
+}
+
 void MainWindow::on_pushButton_suppBruit_clicked()
 {
     // on réinitialise l'affichage
@@ -521,8 +540,6 @@ void MainWindow::on_pushButton_identify_overlaping_clicked() {
             mesh.set_color(fh, MyMesh::Color(0,255,0 ));
         }
     }
-
-    std::cout << "taille :" << overlaped_faces.size() << std::endl;
 
     displayMesh(&mesh);
 }
@@ -782,7 +799,7 @@ void MainWindow::on_pushButton_repFis_clicked()
             next = 0;
         int closest2 = find_closest_vertex(cracks[0][next]);
         if (closest2 == closest){
-            cout << "same" << endl;
+
             closest2 = closest-1;
         }
 
@@ -820,7 +837,6 @@ void MainWindow::on_pushButton_fix_overlaping_clicked()
 
     std::vector<FaceHandle> faces = identifyOverlapes();
 
-    std::cout << "s : " << faces.size() << std::endl;
 
     if (faces.size() > 0) {
         for (auto fh : faces ) {
