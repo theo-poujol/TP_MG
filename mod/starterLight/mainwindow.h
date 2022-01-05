@@ -23,7 +23,7 @@ struct MyTraits : public OpenMesh::DefaultTraits
     FaceAttributes( OpenMesh::Attributes::Normal | OpenMesh::Attributes::Color | OpenMesh::Attributes::Status);
     EdgeAttributes( OpenMesh::Attributes::Color | OpenMesh::Attributes::Status );
     // vertex thickness
-    VertexTraits{float thickness; float value;};
+    VertexTraits{float thickness; float value; bool taken;};
     // edge thickness
     EdgeTraits{float thickness;};
 };
@@ -40,16 +40,26 @@ public:
 
     void displayMesh(MyMesh *_mesh, bool isTemperatureMap = false, float mapRange = -1);
     void resetAllColorsAndThickness(MyMesh* _mesh);
+    std::vector<std::vector<VertexHandle>> detectCrack(MyMesh *_mesh);
+    int find_closest_vertex(VertexHandle vh);
+    std::vector<FaceHandle> identifyOverlapes();
 
 private slots:
     void on_pushButton_chargement_clicked();
+    void on_pushButton_identify_holes_clicked();
+    void on_pushButton_fix_holes_clicked();
+    void on_pushButton_identify_overlaping_clicked();
+    void on_pushButton_fix_overlaping_clicked();
+    void on_pushButton_detectFis_clicked();
+    void on_pushButton_repFis_clicked();
 
-    void on_pushButton_generer_clicked();
+
 
 private:
 
     MyMesh mesh;
-
+    std::vector<float> holes_length;
+    std::vector<std::vector<VertexHandle>> cracks;
     Ui::MainWindow *ui;
 };
 

@@ -29,23 +29,45 @@ unix:!macx {
     LIBS += -L$$PWD/../OpenMesh/liblinux/ -lOpenMeshCore
 
     INCLUDEPATH += $$PWD/../OpenMesh/inc/
+    INCLUDEPATH += $$PWD/../Eigen/
     DEPENDPATH += $$PWD/../OpenMesh/inc/
     DEPENDPATH += $$PWD/../OpenMesh/liblinux/
 }
 
 macx: {
     INCLUDEPATH += $$PWD/../OpenMesh/inc/
+    INCLUDEPATH += $$PWD/../Eigen/
     LIBS += -L$$PWD/../OpenMesh/libosx/ -lOpenMeshCore -lOpenMeshTools
 }
 
 SOURCES += \
+    edge.cpp \
+    hole.cpp \
         main.cpp \
         mainwindow.cpp \
-    meshviewerwidget.cpp
+    meshviewerwidget.cpp \
+    HoleFilling/hole_filling.cpp \
+    MeshReconstruction/lib/Cube.cpp \
+    MeshReconstruction/lib/Triangulation.cpp \
+    MeshReconstruction/lib/IO.cpp \
+    MeshReconstruction/lib/MeshReconstruction.cpp \
+    point.cpp \
+    supertriangle.cpp \
+    triangle.cpp
 
 HEADERS += \
+    edge.h \
+    hole.h \
         mainwindow.h \
-    meshviewerwidget.h
+    meshviewerwidget.h \
+    HoleFilling/hole_filling.h \
+    MeshReconstruction/lib/Cube.h \
+    MeshReconstruction/lib/Triangulation.h \
+    MeshReconstruction/lib/IO.h \
+    MeshReconstruction/lib/MeshReconstruction.h \
+    point.h \
+    supertriangle.h \
+    triangle.h
 
 FORMS += \
         mainwindow.ui

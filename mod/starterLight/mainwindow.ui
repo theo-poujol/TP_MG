@@ -59,9 +59,44 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_generer">
+        <widget class="QPushButton" name="pushButton_identify_holes">
          <property name="text">
-          <string>Générer mesh</string>
+          <string>Identifier les trous</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_fix_holes">
+         <property name="text">
+          <string>Réparer les trous</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_identify_overlaping">
+         <property name="text">
+          <string>Identifier Overlaping</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_fix_overlaping">
+         <property name="text">
+          <string>Réparer Overlaping</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_detectFis">
+         <property name="text">
+          <string>Détecter fissure</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_repFis">
+         <property name="text">
+          <string>Réparer fissure</string>
          </property>
         </widget>
        </item>
@@ -92,7 +127,7 @@
      <x>0</x>
      <y>0</y>
      <width>632</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

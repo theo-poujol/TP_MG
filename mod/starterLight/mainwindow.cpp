@@ -1,8 +1,103 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "HoleFilling/hole_filling.h"
+#include "hole.h"
 
 
 /* **** début de la partie boutons et IHM **** */
+
+vector<vector<VertexHandle>> MainWindow::detectCrack(MyMesh *_mesh){
+    vector<vector<VertexHandle>> boundaries;
+    EdgeHandle eh;
+    int i = 0;
+
+
+    // parcours de toutes les aretes
+    for (MyMesh::EdgeIter curEdge = _mesh->edges_begin(); curEdge != _mesh->edges_end(); curEdge++)
+    {
+        // trouvé une arrete qui a une seule face adjacente
+        HalfedgeHandle heh0 = _mesh->halfedge_handle(*curEdge,0);
+        if(!_mesh->face_handle(heh0).is_valid() || !_mesh->opposite_face_handle(heh0).is_valid() ){
+            HalfedgeHandle iter;
+            HalfedgeHandle init;
+            //récupère l'halfedges en bordure
+            if(!_mesh->face_handle(heh0).is_valid()){
+                iter = heh0;
+                init = heh0;
+            }
+            if(!_mesh->opposite_face_handle(heh0).is_valid()){
+                iter = _mesh->opposite_halfedge_handle(heh0);
+                init = _mesh->opposite_halfedge_handle(heh0);
+            }
+            iter = _mesh->next_halfedge_handle(iter);
+            if(_mesh->data(_mesh->to_vertex_handle(iter)).taken == true)
+                continue;
+            boundaries.push_back(vector<VertexHandle>());
+            boundaries[i].push_back(_mesh->to_vertex_handle(iter));
+            _mesh->data(_mesh->to_vertex_handle(iter)).taken = true;
+            //edge length
+            holes_length.push_back(_mesh->calc_edge_length(*curEdge));
+            //iter sur la bordure
+            while(iter != init) {
+                iter = _mesh->next_halfedge_handle(iter);
+                //cout << _mesh->next_halfedge_handle(iter) << endl;
+                holes_length[i] += _mesh->calc_edge_length(_mesh->edge_handle(iter));
+                boundaries[i].push_back(_mesh->to_vertex_handle(iter));
+                _mesh->data(_mesh->to_vertex_handle(iter)).taken = true;
+            }
+            i++;
+            //break;
+        }
+    }
+    return boundaries;
+}
+
+
+std::vector<FaceHandle> MainWindow::identifyOverlapes() {
+
+    bool isDeleted[mesh.n_faces()];
+    std::vector<FaceHandle> overlaped_faces;
+
+    for (MyMesh::FaceIter curFace = mesh.faces_begin(); curFace != mesh.faces_end(); curFace++) {
+        for (MyMesh::FaceVertexIter curVer = mesh.fv_iter(*curFace); curVer.is_valid(); curVer++) {
+            VertexHandle vh = *curVer;
+
+            int cpt_face = 0;
+
+            for (MyMesh::VertexFaceIter vf_iter = mesh.vf_iter(vh); vf_iter.is_valid(); vf_iter++) {
+                cpt_face++;
+            }
+
+            if (cpt_face == 1) {
+                FaceHandle fh = *curFace;
+                if (!isDeleted[fh.idx()]) {
+                    overlaped_faces.push_back(fh);
+                    isDeleted[fh.idx()] = true;
+                }
+
+            }
+        }
+    }
+
+    return overlaped_faces;
+}
+
+int MainWindow::find_closest_vertex(VertexHandle vh)
+{
+    float min = 10000;
+    Vec3f pointVh = mesh.point(vh);
+    //VertexHandle closestVer;
+    int closestVer;
+    for(int i = 0; i< (int)cracks[1].size(); i++){
+        Vec3f pointCur = mesh.point(cracks[1][i]);
+        if(norm(pointVh - pointCur) < min){
+            min = norm(pointVh - pointCur);
+            closestVer = i;
+            continue;
+        }
+    }
+    return closestVer;
+}
 
 
 // exemple pour charger un fichier .obj
@@ -23,81 +118,96 @@ void MainWindow::on_pushButton_chargement_clicked()
     displayMesh(&mesh);
 }
 
-// exemple pour construire un mesh face par face
-void MainWindow::on_pushButton_generer_clicked()
+// Identification des trous
+void MainWindow::on_pushButton_identify_holes_clicked()
 {
-    MyMesh mesh;
 
-    // on construit une liste de sommets
-    MyMesh::VertexHandle sommets[8];
-    sommets[0] = mesh.add_vertex(MyMesh::Point(-1, -1,  1));
-    sommets[1] = mesh.add_vertex(MyMesh::Point( 1, -1,  1));
-    sommets[2] = mesh.add_vertex(MyMesh::Point( 1,  1,  1));
-    sommets[3] = mesh.add_vertex(MyMesh::Point(-1,  1,  1));
-    sommets[4] = mesh.add_vertex(MyMesh::Point(-1, -1, -1));
-    sommets[5] = mesh.add_vertex(MyMesh::Point( 1, -1, -1));
-    sommets[6] = mesh.add_vertex(MyMesh::Point( 1,  1, -1));
-    sommets[7] = mesh.add_vertex(MyMesh::Point(-1,  1, -1));
-
-
-    // on construit des faces à partir des sommets
-
-    std::vector<MyMesh::VertexHandle> uneNouvelleFace;
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[0]);
-    uneNouvelleFace.push_back(sommets[1]);
-    uneNouvelleFace.push_back(sommets[2]);
-    uneNouvelleFace.push_back(sommets[3]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[7]);
-    uneNouvelleFace.push_back(sommets[6]);
-    uneNouvelleFace.push_back(sommets[5]);
-    uneNouvelleFace.push_back(sommets[4]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[1]);
-    uneNouvelleFace.push_back(sommets[0]);
-    uneNouvelleFace.push_back(sommets[4]);
-    uneNouvelleFace.push_back(sommets[5]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[2]);
-    uneNouvelleFace.push_back(sommets[1]);
-    uneNouvelleFace.push_back(sommets[5]);
-    uneNouvelleFace.push_back(sommets[6]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[3]);
-    uneNouvelleFace.push_back(sommets[2]);
-    uneNouvelleFace.push_back(sommets[6]);
-    uneNouvelleFace.push_back(sommets[7]);
-    mesh.add_face(uneNouvelleFace);
-
-    uneNouvelleFace.clear();
-    uneNouvelleFace.push_back(sommets[0]);
-    uneNouvelleFace.push_back(sommets[3]);
-    uneNouvelleFace.push_back(sommets[7]);
-    uneNouvelleFace.push_back(sommets[4]);
-    mesh.add_face(uneNouvelleFace);
-
-    mesh.update_normals();
-
-    // initialisation des couleurs et épaisseurs (sommets et arêtes) du mesh
     resetAllColorsAndThickness(&mesh);
 
-    // on affiche le maillage
-    displayMesh(&mesh);
+    Hole_Filling hf(mesh);
 
+//    std::vector<MyMesh::HalfedgeHandle> holes = hf.find_boundary_edges();
+
+    std::vector<Hole> holes = hf.find_holes();
+
+    for (Hole hole : holes) {
+
+        if (hole.is_vertices_valid()) {
+            for (auto eh : hole.e_list) {
+
+                mesh.set_color(eh, MyMesh::Color(0, 255, 0));
+                mesh.data(eh).thickness = 7;
+            }
+
+            for (auto vh : hole.pts_list) {
+                mesh.set_color(vh, MyMesh::Color(255, 0,0 ));
+                mesh.data(vh).thickness = 9;
+            }
+        }
+    }
+
+    displayMesh(&mesh);
 }
 
-/* **** fin de la partie boutons et IHM **** */
+void MainWindow::on_pushButton_fix_holes_clicked() {
+    resetAllColorsAndThickness(&mesh);
 
+    Hole_Filling hf(mesh);
+
+    std::vector<Hole> holes = hf.find_holes();
+
+    if (holes.size() == 0) std::cout << "Il n'y a aucuns trous de détecter." << std::endl;
+
+    while (holes.size() != 0) {
+
+        for (Hole hole : holes) {
+            hole.fix();
+        }
+        holes = hf.find_holes();
+    }
+
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_identify_overlaping_clicked() {
+
+    std::vector<FaceHandle> overlaped_faces = identifyOverlapes();
+
+    if (overlaped_faces.size() > 0) {
+        for (auto fh : overlaped_faces) {
+            mesh.set_color(fh, MyMesh::Color(0,255,0 ));
+        }
+    }
+
+    std::cout << "taille :" << overlaped_faces.size() << std::endl;
+
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_detectFis_clicked()
+{
+    vector<vector<VertexHandle>> holes = detectCrack(&mesh);
+    int max = 0;
+
+    for(int lenght : holes_length){
+        if(lenght > max)
+            max = lenght;
+    }
+    for(int i = 0; i < (int)holes.size(); i++){
+        int color = 255;
+        if((int)holes_length[i] == max){
+            cracks.push_back(holes[i]);
+            for(VertexHandle vh : holes[i]){
+                mesh.data(vh).thickness = 6;
+                mesh.set_color(vh,MyMesh::Color(color,0,0));
+            }
+        }
+    }
+    displayMesh(&mesh);
+}
+
+
+/* **** fin de la partie boutons et IHM **** */
 
 
 /* **** fonctions supplémentaires **** */
@@ -315,4 +425,69 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::on_pushButton_repFis_clicked()
+{
+    mesh.request_vertex_status();
+    mesh.request_edge_status();
+    mesh.request_face_status();
 
+    std::vector<MyMesh::VertexHandle> uneNouvelleFace;
+    for (int i = 0; i < (int)cracks[0].size(); i++) {
+        int closest = find_closest_vertex(cracks[0][i]);
+        int next = i+1;
+        if (i == (int)cracks[0].size()-1)
+            next = 0;
+        int closest2 = find_closest_vertex(cracks[0][next]);
+        if (closest2 == closest){
+            cout << "same" << endl;
+            closest2 = closest-1;
+        }
+
+        uneNouvelleFace.clear();
+        uneNouvelleFace.push_back(cracks[0][i]);
+        uneNouvelleFace.push_back(cracks[0][next]);
+        uneNouvelleFace.push_back(cracks[1][closest2]);
+        uneNouvelleFace.push_back(cracks[1][closest]);
+        mesh.add_face(uneNouvelleFace);
+    }
+
+    for(int i = 0; i < (int)cracks[0].size(); i++){
+        int closest = find_closest_vertex(cracks[0][i]);
+
+
+        if(mesh.is_collapse_ok(mesh.find_halfedge(cracks[0][i], cracks[1][closest])))
+            mesh.collapse(mesh.find_halfedge(cracks[0][i], cracks[1][closest]));
+
+    }
+
+    mesh.garbage_collection();
+
+    resetAllColorsAndThickness(&mesh);
+
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_fix_overlaping_clicked()
+{
+
+    mesh.request_vertex_status();
+    mesh.request_edge_status();
+    mesh.request_face_status();
+    int cpt = 0;
+
+    std::vector<FaceHandle> faces = identifyOverlapes();
+
+    std::cout << "s : " << faces.size() << std::endl;
+
+    if (faces.size() > 0) {
+        for (auto fh : faces ) {
+            mesh.delete_face(fh, true);
+        }
+    }
+
+    mesh.garbage_collection();
+
+    resetAllColorsAndThickness(&mesh);
+
+    displayMesh(&mesh);
+}
