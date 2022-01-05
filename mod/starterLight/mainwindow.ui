@@ -59,6 +59,9 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pushButton_voirBruit">
+         <property name="text">
+          <string>Voir le bruit</string>
         <widget class="QPushButton" name="pushButton_identify_holes">
          <property name="text">
           <string>Identifier les trous</string>
@@ -66,6 +69,9 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pushButton_suppBruit">
+         <property name="text">
+          <string>Supprimer le bruit</string>
         <widget class="QPushButton" name="pushButton_fix_holes">
          <property name="text">
           <string>Réparer les trous</string>
@@ -73,6 +79,9 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pushButton_suppBruitMaillage">
+         <property name="text">
+          <string>Supprimer le bruit du maillage</string>
         <widget class="QPushButton" name="pushButton_identify_overlaping">
          <property name="text">
           <string>Identifier Overlaping</string>

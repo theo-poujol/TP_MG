@@ -44,7 +44,19 @@ public:
     int find_closest_vertex(VertexHandle vh);
     std::vector<FaceHandle> identifyOverlapes();
 
+    bool inArray(std::vector<int> const& visited, int const& a);
+    int findNewFace(std::vector<int> const& visited, int const& nbFaces);
+    std::vector<int> exploreNeighbors(MyMesh* _mesh, int face, std::vector<int> const& visited, int const& color);
+    std::vector<std::vector<std::vector<int>>> detecteParts(MyMesh* _mesh);
+    void showParts(MyMesh* _mesh, std::vector<std::vector<std::vector<int>>> noises);
+    bool isNoice(std::vector<int> const& parts, MyMesh* _mesh);
+    std::vector<int> vertexEquivalence(MyMesh* _mesh);
+    bool is_equal(MyMesh* _mesh, int v1, int v2);
+    void deleteBruit(MyMesh* _mesh, std::vector<std::vector<int>> noise);
+
 private slots:
+    void on_pushButton_suppBruit_clicked();
+    void on_pushButton_suppBruitMaillage_clicked();
     void on_pushButton_chargement_clicked();
     void on_pushButton_identify_holes_clicked();
     void on_pushButton_fix_holes_clicked();
@@ -52,8 +64,7 @@ private slots:
     void on_pushButton_fix_overlaping_clicked();
     void on_pushButton_detectFis_clicked();
     void on_pushButton_repFis_clicked();
-
-
+    void on_pushButton_voirBruit_clicked();
 
 private:
 

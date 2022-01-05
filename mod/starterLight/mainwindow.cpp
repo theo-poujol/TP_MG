@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "iostream"
 #include "HoleFilling/hole_filling.h"
 #include "hole.h"
-
 
 /* **** début de la partie boutons et IHM **** */
 
@@ -115,6 +115,349 @@ void MainWindow::on_pushButton_chargement_clicked()
     resetAllColorsAndThickness(&mesh);
 
     // on affiche le maillage
+    displayMesh(&mesh);
+}
+
+bool MainWindow::inArray(std::vector<int> const& visited, int const& a){
+    bool find = false;
+    for(size_t i(0); i < visited.size(); i++){
+        find = find || (visited[i] == a);
+    }
+
+    return find;
+}
+
+int MainWindow::findNewFace(std::vector<int> const& visited, int const& nbFaces){
+    for(int i(0); i < nbFaces; i++){
+        if(!inArray(visited, i)){
+            return i;
+        }
+    }
+}
+
+std::vector<int> MainWindow::exploreNeighbors(MyMesh* _mesh, int face, std::vector<int> const& visited, int const& color){
+    FaceHandle fh = _mesh->face_handle(face);
+
+    std::vector<int> explored(0);
+
+    for (MyMesh::FaceFaceIter ff_it=_mesh->ff_iter(fh); ff_it.is_valid(); ++ff_it)
+    {
+      if(!inArray(visited, (*ff_it).idx())){
+          explored.push_back((*ff_it).idx());
+      }
+    }
+
+    return explored;
+}
+
+
+bool MainWindow::isNoice(std::vector<int> const& part, MyMesh* _mesh){
+    bool isNoice = true;
+    for(size_t i(0); i < part.size(); i++){
+        FaceHandle fh = mesh.face_handle(part[i]);
+        bool isBoundary = _mesh->is_boundary(fh);
+        isNoice = isNoice && isBoundary;
+    }
+
+    return isNoice;
+}
+
+bool MainWindow::is_equal(MyMesh* _mesh, int vertex1, int vertex2){
+
+    VertexHandle v1 = _mesh->vertex_handle(vertex1);
+    VertexHandle v2 = _mesh->vertex_handle(vertex2);
+
+    float x1 = _mesh->point(v1)[0];
+    float y1 = _mesh->point(v1)[1];
+    float z1 = _mesh->point(v1)[2];
+
+    float x2 = _mesh->point(v2)[0];
+    float y2 = _mesh->point(v2)[1];
+    float z2 = _mesh->point(v2)[2];
+
+    return (abs(x1 - x2) <= 0.01) && (abs(y1 - y2) <= 0.01) && abs(z1 - z2) <= 0.01;
+
+}
+
+std::vector<int> MainWindow::vertexEquivalence(MyMesh* _mesh){
+    std::vector<int> equivalence;
+
+    int nb_vertices = _mesh->n_vertices();
+
+    for(int i(0); i < nb_vertices; i++){
+        equivalence.push_back(i);
+    }
+
+    for (MyMesh::VertexIter curVert = _mesh->vertices_begin(); curVert != _mesh->vertices_end(); curVert++)
+    {
+        for (MyMesh::VertexIter curVert2 = curVert+1; curVert2 != _mesh->vertices_end(); curVert2++)
+        {
+
+            int v1 = (*curVert).idx();
+            int v2 = (*curVert2).idx();
+
+            if(is_equal(_mesh, v1, v2)){
+                // Si les deux éléments ne sont pas encore dans une liste circulaire
+                if((equivalence[v1] == v1) && (equivalence[v2] == v2)){
+                    equivalence[v1] = v2;
+                    equivalence[v2] = v1;
+                }
+
+                // Si un des deux y est
+                if(equivalence[v1] != v1 && equivalence[v2] == v2){
+                    int equivalence_v1 = equivalence[v1];
+                    equivalence[v1] = v2;
+                    equivalence[v2] = equivalence_v1;
+                }
+                if(equivalence[v1] == v1 && equivalence[v2] != v2){
+                    int equivalence_v2 = equivalence[v2];
+                    equivalence[v2] = v1;
+                    equivalence[v1] = equivalence_v2;
+                }
+
+                // Si les deux éléments sont dans une liste circulaire
+                if(equivalence[v1] != v1 && equivalence[v2] != v2 && equivalence[v1] != v2 && equivalence[v2] != v1){
+                    // on vérifie d'abord qu'ils ne sont pas dans la même
+
+                    int a = equivalence[v1];
+                    bool in_same = false;
+
+                    while(a != v1 && !in_same){
+                        in_same = in_same || (a == v1);
+                        a = equivalence[a];
+                    }
+
+                    if(!in_same){
+                        int equivalence_v1 = equivalence[v1];
+                        equivalence[v1] = equivalence[v2];
+                        equivalence[v2] = equivalence_v1;
+                    }
+
+                }
+
+            }
+
+        }
+    }
+
+    return equivalence;
+
+}
+
+
+std::vector<std::vector<std::vector<int>>> MainWindow::detecteParts(MyMesh* _mesh)
+{
+    /* **** à compléter ! **** */
+
+    int const nbFaces = _mesh->n_faces();
+
+    int nbParts = 0;
+
+    std::vector<int> equivalence = vertexEquivalence(_mesh);
+
+    std::vector<int> visited(0);
+    std::vector<int> toVisit(0);
+
+    std::vector<int> faces_in_noice;
+
+    std::vector<std::vector<int>> noise_parts;
+
+
+    do {
+        std::vector<int> in_part;
+
+        int newFace = findNewFace(visited, nbFaces);
+
+        toVisit.push_back(newFace);
+
+        while (toVisit.size() != 0) {
+            int face = toVisit[0];
+            toVisit.erase(toVisit.begin());
+
+            std::vector<int> explored = exploreNeighbors(_mesh, face, visited, nbParts);
+
+            visited.push_back(face);
+            in_part.push_back(face);
+
+            for(size_t i(0); i < explored.size(); i++){
+                if(!inArray(toVisit, explored[i])){
+                    toVisit.push_back(explored[i]);
+                }
+            }
+        }
+
+
+        if(isNoice(in_part, _mesh)){
+
+            for(size_t i(0); i < in_part.size(); i++){
+                faces_in_noice.push_back(in_part[i]);
+            }
+
+            bool fusion = false;
+
+            for(size_t i(0); i < in_part.size() && !fusion; i++){
+                FaceHandle fh = _mesh->face_handle(in_part[i]);
+                for (MyMesh::FaceVertexIter fv_it=mesh.fv_iter(fh); fv_it.is_valid() && !fusion; ++fv_it)
+                {
+
+                    int vertex = (*fv_it).idx();
+
+                    do {
+                        VertexHandle v = _mesh->vertex_handle(vertex);
+
+                        for (MyMesh::VertexFaceIter vf_it=mesh.vf_iter(v); vf_it.is_valid() && !fusion; ++vf_it)
+                        {
+
+                            for(size_t k(0); k < noise_parts.size() && !fusion; k++){
+                                if(inArray(noise_parts[k], (*vf_it).idx())){
+                                    fusion = true;
+                                    for(size_t j(0); j < in_part.size(); j++){
+                                        noise_parts[k].push_back(in_part[j]);
+                                    }
+                                }
+                            }
+
+                        }
+
+                        vertex = equivalence[vertex];
+                    } while(vertex != (*fv_it).idx());
+
+                }
+
+            }
+
+            std::cout << fusion << std::endl;
+
+            if(!fusion){
+                noise_parts.push_back(in_part);
+            }
+
+            std::cout << noise_parts.size() << std::endl;
+
+
+        }
+
+        std::cout << "nbParts" << nbParts << std::endl;
+        nbParts++;
+
+    } while (visited.size() < nbFaces);
+
+    std::cout << noise_parts.size() << std::endl;
+
+    std::vector<std::vector<int>> noise_connected;
+
+    std::vector<std::vector<int>> noise;
+
+    for(size_t k(0); k < noise_parts.size(); k++){
+
+        bool part_is_connected = false;
+
+        for(size_t i(0); i < noise_parts[k].size(); i++){
+            FaceHandle fh = _mesh->face_handle(noise_parts[k][i]);
+
+            for (MyMesh::FaceVertexIter fv_it=mesh.fv_iter(fh); fv_it.is_valid(); ++fv_it)
+            {
+
+                int vertex = (*fv_it).idx();
+
+                do {
+                    VertexHandle v = _mesh->vertex_handle(vertex);
+
+                    for (MyMesh::VertexFaceIter vf_it=mesh.vf_iter(v); vf_it.is_valid(); ++vf_it)
+                    {
+
+                      //std::cout << in_part[i] << " " << (*vf_it).idx() << std::endl;
+
+                      if(!inArray(noise_parts[k], (*vf_it).idx()) && !inArray(faces_in_noice, (*vf_it).idx())){
+                          part_is_connected = true;
+                      }
+                    }
+
+                    vertex = equivalence[vertex];
+                } while(vertex != (*fv_it).idx());
+            }
+
+        }
+
+        if(part_is_connected){
+            noise_connected.push_back(noise_parts[k]);
+        } else {
+            noise.push_back(noise_parts[k]);
+        }
+
+    }
+
+    std::vector<std::vector<std::vector<int>>> noises;
+    noises.push_back(noise_connected);
+    noises.push_back(noise);
+
+    return noises;
+}
+
+void MainWindow::showParts(MyMesh* _mesh, std::vector<std::vector<std::vector<int>>> noises){
+
+    for(size_t i(0); i < noises[0].size(); i++){
+        for(size_t j(0); j < noises[0][i].size(); j++){
+            FaceHandle fh = _mesh->face_handle(noises[0][i][j]);
+            _mesh->set_color(fh, MyMesh::Color(255, 127, 0));
+        }
+    }
+
+    for(size_t i(0); i < noises[1].size(); i++){
+        for(size_t j(0); j < noises[1][i].size(); j++){
+            FaceHandle fh = _mesh->face_handle(noises[1][i][j]);
+            _mesh->set_color(fh, MyMesh::Color(127, 0, 255));
+        }
+    }
+}
+
+void MainWindow::deleteBruit(MyMesh *_mesh, std::vector<std::vector<int>> noise){
+    for(size_t i(0); i < noise.size(); i++ ){
+        for(size_t j(0); j < noise[i].size(); j++){
+            FaceHandle f = _mesh->face_handle(noise[i][j]);
+            _mesh->delete_face(f);
+        }
+
+    }
+
+    _mesh->garbage_collection();
+}
+
+void MainWindow::on_pushButton_voirBruit_clicked()
+{
+    // on réinitialise l'affichage
+    resetAllColorsAndThickness(&mesh);
+
+    std::vector<std::vector<std::vector<int>>> noises = detecteParts(&mesh);
+    showParts(&mesh, noises);
+
+    // on affiche le nouveau maillage
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_suppBruit_clicked()
+{
+    // on réinitialise l'affichage
+    resetAllColorsAndThickness(&mesh);
+
+
+    std::vector<std::vector<std::vector<int>>> noises = detecteParts(&mesh);
+    deleteBruit(&mesh, noises[1]);
+
+    // on affiche le nouveau maillage
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_suppBruitMaillage_clicked()
+{
+    // on réinitialise l'affichage
+    resetAllColorsAndThickness(&mesh);
+
+
+    std::vector<std::vector<std::vector<int>>> noises = detecteParts(&mesh);
+    deleteBruit(&mesh, noises[0]);
+
+    // on affiche le nouveau maillage
     displayMesh(&mesh);
 }
 
